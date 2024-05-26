@@ -1,2 +1,1 @@
-# Termite
-Termite - The Credential Hunter
+# Termite - The Credential Hunter
