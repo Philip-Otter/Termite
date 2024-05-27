@@ -1,4 +1,6 @@
 # Python3 version of Termite Credential Hunter
+# Made with love 
+# 2xdropout 2024
 import argparse
 import os
 
@@ -14,19 +16,50 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 matchValues = ["creds", "credentials", "password","passwd", "logon"]
+ignoredHashes = []
+ctf = False
+hash = None
+hashFile = None
 
 def draw_logo():
 	print(bcolors.OKGREEN+"""
-░▒▓████████▓▒░▒▓████████▓▒░▒▓███████▓▒░░▒▓██████████████▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓████████▓▒░ 
-   ░▒▓█▓▒░   ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░  ░▒▓█▓▒░   ░▒▓█▓▒░        
-   ░▒▓█▓▒░   ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░  ░▒▓█▓▒░   ░▒▓█▓▒░        
-   ░▒▓█▓▒░   ░▒▓██████▓▒░ ░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░  ░▒▓█▓▒░   ░▒▓██████▓▒░   
-   ░▒▓█▓▒░   ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░  ░▒▓█▓▒░   ░▒▓█▓▒░        
-   ░▒▓█▓▒░   ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░  ░▒▓█▓▒░   ░▒▓█▓▒░        
-   ░▒▓█▓▒░   ░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░  ░▒▓█▓▒░   ░▒▓████████▓▒░ 
-                                                                                             
-                                                                                             
+--------------------------------------------------------------
+|							     |
+|  ████████╗███████╗██████╗ ███╗   ███╗██╗████████╗███████╗  |
+|  ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║╚══██╔══╝██╔════╝  |
+|     ██║   █████╗  ██████╔╝██╔████╔██║██║   ██║   █████╗    |
+|     ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║   ██║   ██╔══╝    |
+|     ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║   ██║   ███████╗  |
+|     ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝   ╚═╝   ╚══════╝  |
+--------------------------------------------------------------
 """+bcolors.ENDC)
+
+
+def import_hashes():  # Need to comeback later to have this accept more than just newline seperated hashes
+	global hashFile
+	global ignoredHashes
+
+	try:
+		with open(hashFile,'r') as file:
+			for line in file:
+				ignoredHashes.append(line.strip())
+		file.close()
+	except Exception as e:
+		print(bcolors.FAIL+"FAILED TO IMPORT HASH LIST FROM FILE:  "+hashFile)
+		print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
+
+
+def import_matchValues(filePath):
+	global matchValues
+
+	try:
+		with open(filePath,'r') as file:
+			for line in file:
+				matchValues.append(line.strip())
+		file.close()
+	except Exception as e:
+		print(bcolors.FAIL+"FAILED TO IMPORT USERNAME OR PASSWORD LIST:  "+filePath)
+		print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
 
 
 def get_folders(rootFolder):
@@ -80,15 +113,15 @@ def search_file(fileName, path):
 
 def main():
 	global matchValues
+	global ctf
+	global hash
+	global hashFile
 
 	path = "./"
-	ctf = False
-	hash = None
 	username = None
 	usernameList = None
 	password = None
 	passwordList = None
-	hashFile = None
 	folders = []
 
 	msg = "python3 version of Termite Credential Hunter"
@@ -104,6 +137,8 @@ def main():
 	parser.add_argument("-o","--output", help = "Set An Output File")
 	parser.add_argument("--hashFile", help = "Set A Comparative List Of Hash Files To Ignore Common Files")
 
+	draw_logo()
+
 	args = parser.parse_args()
 
 	if(args.path != None):
@@ -115,7 +150,19 @@ def main():
 	if(args.password != None):
 		matchValues.append(args.password)
 
-	draw_logo()
+	if(args.usernameList != None):
+		import_matchValues(args.usernameList)
+
+	if(args.passwordList != None):
+		import_matchValues(args.passwordList)
+
+	if(args.usernameList != None):
+		import_matchValues(args.usernameList)
+
+	if(args.hashFile != None):
+		import_hashes()
+
+
 	folders = get_folders(path)
 	get_files(folders)
 
