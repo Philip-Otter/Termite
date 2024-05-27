@@ -42,7 +42,7 @@ def ctf_search(fileName, path):
 	realPath = path+"/"+fileName
 
 	try:
-		with open(realPath, 'r') as file:
+		with open(realPath, 'r', errors = "ignore") as file:
 			lineNumber = 1
 			for line in file:
 				for item in ctfIndicatorValues:
