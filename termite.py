@@ -3,6 +3,7 @@
 # 2xdropout 2024
 import argparse
 import os
+import re
 
 class bcolors:
     HEADER = '\033[95m'
@@ -16,9 +17,9 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 matchValues = ["creds", "credentials", "password","passwd", "logon"]
+ctfIndicatorValues = ["ctf","flag","picoctf","htb"]
 ignoredHashes = []
 ctf = False
-hash = None
 hashFile = None
 
 def draw_logo():
@@ -33,6 +34,30 @@ def draw_logo():
 |     ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝   ╚═╝   ╚══════╝  |
 --------------------------------------------------------------
 """+bcolors.ENDC)
+
+
+def ctf_search(fileName, path):
+	global ctfIndicatorValues
+
+	realPath = path+"/"+fileName
+
+	try:
+		with open(realPath, 'r') as file:
+			lineNumber = 1
+			for line in file:
+				for item in ctfIndicatorValues:
+					reSearch = item+"\W\w+\W"
+					hits = re.findall(str(reSearch), line.lower())
+					if(hits):
+						print(bcolors.OKBLUE+"MATCH FOUND!\n"+bcolors.OKCYAN+"FILE:  "+bcolors.ENDC+realPath+bcolors.OKCYAN+"\nLine Number:  "+bcolors.ENDC,lineNumber)
+						for hit in hits:
+							print(bcolors.WARNING+str(hit))
+						print("\n"+bcolors.ENDC)
+				lineNumber += 1
+		file.close()
+	except Exception as e:
+		print(bcolors.FAIL+"FAILED TO SEARCH FOR CTF FLAG MATCH IN FILE:  "+realPath)
+		print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
 
 
 def import_hashes():  # Need to comeback later to have this accept more than just newline seperated hashes
@@ -75,17 +100,22 @@ def get_folders(rootFolder):
 
 def get_files(folders):
 	global matchValues
+	global ctf
 
 	for folder in folders:
 		interestingFiles = []
 		for file in  os.listdir(folder):
-			search_file(file, folder)
+			if(ctf):
+				ctf_search(file,folder)
+			else:
+				search_file(file, folder)
 			if(file in matchValues):
 				interestingFiles.append(file)
 		if(interestingFiles):
 			print(bcolors.OKGREEN+"INTERSTING FILES IN:  "+bcolors.OKCYAN+folder)
 			for interest in interestingFiles:
 				print(bcolors.WARNING+file+bcolors.ENDC+"\n")
+
 
 def search_file(fileName, path):
 	global matchValues
@@ -128,8 +158,7 @@ def main():
 
 	parser = argparse.ArgumentParser(description = msg)
 	parser.add_argument("-f","--path", help = "Set Search Path")
-	parser.add_argument("-c","--ctf", help = "Turn On CTF Mode")
-	parser.add_argument("-s","--hash", help = "When CTF Mode Is On, Limit Search Based On Flag Hash Type")
+	parser.add_argument("-c","--ctf", action = "store_true", help = "Turn On CTF Mode")
 	parser.add_argument("-u","--username", help = "Include A Know Username To Help Target Search")
 	parser.add_argument("-U","--usernameList", help = "Set A File Path Containing Usernames")
 	parser.add_argument("-p","--password", help = "Include A Know Password To Help Target Search")
@@ -162,6 +191,8 @@ def main():
 	if(args.hashFile != None):
 		import_hashes()
 
+	if(args.ctf == True):
+		ctf = True
 
 	folders = get_folders(path)
 	get_files(folders)
