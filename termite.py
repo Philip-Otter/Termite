@@ -15,12 +15,14 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+    BU = BOLD+UNDERLINE
 
 matchValues = ["creds", "credentials", "password","passwd", "logon"]
 ctfIndicatorValues = ["ctf","flag","picoctf","htb"]
 ignoredHashes = []
 ctf = False
 hashFile = None
+
 
 def draw_logo():
 	print(bcolors.OKGREEN+"""
@@ -57,20 +59,6 @@ def ctf_search(fileName, path):
 		file.close()
 	except Exception as e:
 		print(bcolors.FAIL+"FAILED TO SEARCH FOR CTF FLAG MATCH IN FILE:  "+realPath)
-		print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
-
-
-def import_hashes():  # Need to comeback later to have this accept more than just newline seperated hashes
-	global hashFile
-	global ignoredHashes
-
-	try:
-		with open(hashFile,'r') as file:
-			for line in file:
-				ignoredHashes.append(line.strip())
-		file.close()
-	except Exception as e:
-		print(bcolors.FAIL+"FAILED TO IMPORT HASH LIST FROM FILE:  "+hashFile)
 		print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
 
 
@@ -163,8 +151,6 @@ def main():
 	parser.add_argument("-U","--usernameList", help = "Set A File Path Containing Usernames")
 	parser.add_argument("-p","--password", help = "Include A Know Password To Help Target Search")
 	parser.add_argument("-P","--passwordList", help = "Set A File Path Containing Passwords")
-	parser.add_argument("-o","--output", help = "Set An Output File")
-	parser.add_argument("--hashFile", help = "Set A Comparative List Of Hash Files To Ignore Common Files")
 
 	draw_logo()
 
@@ -188,11 +174,18 @@ def main():
 	if(args.usernameList != None):
 		import_matchValues(args.usernameList)
 
-	if(args.hashFile != None):
-		import_hashes()
-
 	if(args.ctf == True):
 		ctf = True
+
+	# Print Configs
+	print(bcolors.BOLD+bcolors.OKGREEN+"CONFIGURATIONS"+bcolors.ENDC)
+	print(bcolors.BU+"ROOT FOLDER:"+bcolors.ENDC+"  "+path)
+	print(bcolors.BU+"USERNAME:"+bcolors.ENDC+"  "+str(args.username))
+	print(bcolors.BU+"USERNAME LIST:"+bcolors.ENDC+"  "+str(args.usernameList))
+	print(bcolors.BU+"PASSWORD:"+bcolors.ENDC+"  "+str(args.password))
+	print(bcolors.BU+"PASSWORD LIST:"+bcolors.ENDC+"  "+str(args.passwordList))
+	print(bcolors.BU+"CTF MODE:"+bcolors.ENDC+"  "+str(ctf))
+	print("\n")
 
 	folders = get_folders(path)
 	get_files(folders)
