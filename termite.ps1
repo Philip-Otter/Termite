@@ -4,19 +4,28 @@ Made with love
 2xdropout 2024
 #>
 
-$matchValues = @("creds", "credentials", "password","passwd", "logon")
-$ctfIndicatorValues = @("ctf","flag","picoctf","htb")
-$ctf = $false
-$baseDirectoryPath = "./"
-
-
 # Transfer OG Termite arguments here
 param(
         [Parameter(Mandatory=$false)]
-        [string]$path = $baseDirectoryPath,
+        [string] $path = "./",
         [Parameter(Mandatory=$false)]
-        [bool]$ctfMode = $ctf
+        [switch] $ctfMode,
+        [Parameter(Mandatory=$false)]
+        [string] $username = $null,
+        [Parameter(Mandatory=$false)]
+        [string] $usernameList = $null,
+        [Parameter(Mandatory=$false)]
+        [string] $password = $null,
+        [Parameter(Mandatory=$false)]
+        [string] $passwordList = $null
 )
+
+$matchValues = @("creds", "credentials", "password","passwd", "logon")
+$ctfIndicatorValues = @("ctf","flag","picoctf","htb")
+
+
+
+
 
 
 function Write-Logo{
