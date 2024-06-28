@@ -48,10 +48,21 @@ function Write-Logo{
 }
 
 
-function Read-UserParams{
-    
-
-}
-
-
 Write-Logo
+
+# Print Configs
+
+Write-Host "        CONFIGURATIONS`r`n----------------------------" -ForegroundColor Green
+Write-Host "ROOT FOLDER:  " -NoNewline -ForegroundColor Blue
+Write-Host $path -ForegroundColor Yellow
+Write-Host "USERNAME:  " -NoNewline -ForegroundColor Blue
+Write-Host $username -ForegroundColor Yellow
+Write-Host "USERNAME LIST:  " -NoNewline -ForegroundColor Blue
+Write-Host $usernameList -ForegroundColor Yellow
+Write-Host "PASSWORD:  " -NoNewline -ForegroundColor Blue
+Write-Host $password -ForegroundColor Yellow
+Write-Host "PASSWORD LIST:  " -NoNewline -ForegroundColor Blue
+Write-Host $passwordList -ForegroundColor Yellow
+Write-Host "CTF MODE:  " -NoNewline -ForegroundColor Blue
+Write-Host $ctfMode -ForegroundColor Yellow
+Write-Host "----------------------------" -ForegroundColor Green
