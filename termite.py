@@ -17,10 +17,11 @@ class bcolors:
     UNDERLINE = '\033[4m'
     BU = BOLD+UNDERLINE
 
-matchValues = ["creds", "credentials", "password","passwd", "logon"]
+matchValues = ["creds", "credentials", "pass", "username"]
 ctfIndicatorValues = ["ctf","flag","picoctf","htb"]
 ignoredHashes = []
 ctf = False
+quietMode = False
 hashFile = None
 
 
@@ -40,6 +41,7 @@ def draw_logo():
 
 def ctf_search(fileName, path):
 	global ctfIndicatorValues
+	global quietMode
 
 	realPath = path+"/"+fileName
 
@@ -58,12 +60,14 @@ def ctf_search(fileName, path):
 				lineNumber += 1
 		file.close()
 	except Exception as e:
-		print(bcolors.FAIL+"FAILED TO SEARCH FOR CTF FLAG MATCH IN FILE:  "+realPath)
-		print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
+		if(not quietMode):
+			print(bcolors.FAIL+"FAILED TO SEARCH FOR CTF FLAG MATCH IN FILE:  "+realPath)
+			print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
 
 
 def import_matchValues(filePath):
 	global matchValues
+	global quietMode
 
 	try:
 		with open(filePath,'r') as file:
@@ -71,18 +75,21 @@ def import_matchValues(filePath):
 				matchValues.append(line.strip())
 		file.close()
 	except Exception as e:
-		print(bcolors.FAIL+"FAILED TO IMPORT USERNAME OR PASSWORD LIST:  "+filePath)
-		print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
+		if(not quietMode):
+			print(bcolors.FAIL+"FAILED TO IMPORT USERNAME OR PASSWORD LIST:  "+filePath)
+			print(bcolors.WARNING,e,"\n"+bcolors.ENDC)
 
 
 def get_folders(rootFolder):
+	global quietMode
 	folders = []
 	try:
 		for (root, dirs, file) in os.walk(rootFolder):
 			folders.append(root)
 	except Exception as e:
-		print(bcolors.FAIL+"FAILED TO WALK PATH:  "+rootFolder)
-		print(bcolors.WARNING,e,bcolors.ENDC)
+		if(not quietMode):
+			print(bcolors.FAIL+"FAILED TO WALK PATH:  "+rootFolder)
+			print(bcolors.WARNING,e,bcolors.ENDC)
 	return folders
 
 
@@ -107,26 +114,39 @@ def get_files(folders):
 
 def search_file(fileName, path):
 	global matchValues
+	global quietMode
 	realPath = path+"/"+fileName
+	falsePostives = ["bypass", "by-pass", "passthru", "passing", "passed", "passes", "passive", "passthrough", "compass", "passport", "nordpass", "UmPass", "signpass", "kompass", "FirstPassBackward", "FirstPassForward", "minipass", "to pass", "pre-pass", "prepass", "/etc/passwd", "trespass"]
+	falsePositive = False
 
 	try:
 		with open(realPath, 'r') as file:
 			lineNumber = 1
 			for line in file:
+				falsePositive = False
 				for item in matchValues:
 					if( item.lower() in line.lower() ):
-						print(bcolors.OKBLUE+"MATCH FOUND!\n"+bcolors.OKCYAN+"FILE:  "+bcolors.ENDC+realPath+bcolors.OKCYAN+"\nLine Number:  "+bcolors.ENDC,lineNumber)
-						if(len(line) > 200):
-							print(bcolors.WARNING+"LINE TOO LONG TO PRINT\n"+bcolors.ENDC)
-						else:
-							print(bcolors.WARNING+line+bcolors.ENDC)
+						for falseItem in falsePostives:
+							if( falseItem.lower() in line.lower()):
+								falsePositive = True
+								break
+
+						if(not falsePositive):
+							print(bcolors.OKBLUE+"MATCH FOUND!\n"+bcolors.OKCYAN+"FILE:  "+bcolors.ENDC+realPath+bcolors.OKCYAN+"\nLine Number:  "+bcolors.ENDC,lineNumber)
+
+							if(len(line) > 1337):
+								print(bcolors.WARNING+"LINE TOO LONG TO PRINT\n"+bcolors.ENDC)
+							else:
+								print(bcolors.WARNING+line+bcolors.ENDC)
+
 						break
 				lineNumber += 1
 		file.close()
 	except Exception as e:
-		if("Is a directory" not in str(e) and "decode byte" not in str(e)):
-			print(bcolors.FAIL+"Failed To Open File:  "+realPath)
-			print(bcolors.WARNING,e,bcolors.ENDC+"\n")
+		if(not quietMode):
+			if("Is a directory" not in str(e) and "decode byte" not in str(e)):
+				print(bcolors.FAIL+"Failed To Open File:  "+realPath)
+				print(bcolors.WARNING,e,bcolors.ENDC+"\n")
 
 
 def main():
@@ -134,6 +154,7 @@ def main():
 	global ctf
 	global hash
 	global hashFile
+	global quietMode
 
 	path = "./"
 	username = None
@@ -151,6 +172,7 @@ def main():
 	parser.add_argument("-U","--usernameList", help = "Set A File Path Containing Usernames")
 	parser.add_argument("-p","--password", help = "Include A Know Password To Help Target Search")
 	parser.add_argument("-P","--passwordList", help = "Set A File Path Containing Passwords")
+	parser.add_argument("-q","--quiet", action = "store_true", help = "Quiet all errors in output")
 
 	draw_logo()
 
@@ -176,6 +198,9 @@ def main():
 
 	if(args.ctf == True):
 		ctf = True
+	
+	if(args.quiet == True):
+		quietMode = True
 
 	# Print Configs
 	print(bcolors.BOLD+bcolors.OKGREEN+"CONFIGURATIONS"+bcolors.ENDC)
@@ -185,6 +210,7 @@ def main():
 	print(bcolors.BU+"PASSWORD:"+bcolors.ENDC+"  "+str(args.password))
 	print(bcolors.BU+"PASSWORD LIST:"+bcolors.ENDC+"  "+str(args.passwordList))
 	print(bcolors.BU+"CTF MODE:"+bcolors.ENDC+"  "+str(ctf))
+	print(bcolors.BU+"Quiet MODE:"+bcolors.ENDC+"  "+str(quietMode))
 	print("\n")
 
 	folders = get_folders(path)
